@@ -53,3 +53,76 @@ in FastAPI we will have 3 main services:
 - Gateway service
 
 We may use CursorRules file as well to help us write the code.
+
+- backend
+- front end
+
+BUild out a Architecture Diagram for the application.
+
+```mermaid
+graph TB
+    subgraph "Frontend (NextJS)"
+        UI[Web Interface]
+        UI --> LoginPage[Login Page]
+        UI --> UploadPage[Upload Page]
+        UI --> BillingPage[Billing Page]
+        UI --> ChatPage[RAG Chat Page]
+    end
+
+    subgraph "API Gateway"
+        Gateway[API Gateway Service]
+    end
+
+    subgraph "Backend Services"
+        Auth[Auth Service]
+        Upload[Upload Service]
+        RAG[RAG Service]
+    end
+
+    subgraph "Storage & Databases"
+        S3[(S3 Storage)]
+        PineconeDB[(Pinecone Vector DB)]
+        PostgresDB[(NeonDB PostgreSQL)]
+    end
+
+    subgraph "External Services"
+        OpenAI[OpenAI API]
+        Auth0[Auth0/OKTA]
+    end
+
+    %% Frontend to Gateway connections
+    UI --> Gateway
+
+    %% Gateway to Services connections
+    Gateway --> Auth
+    Gateway --> Upload
+    Gateway --> RAG
+
+    %% Service connections to storage
+    Upload --> S3
+    RAG --> S3
+    RAG --> PineconeDB
+    Auth --> PostgresDB
+    Upload --> PostgresDB
+    RAG --> PostgresDB
+
+    %% External service connections
+    Auth --> Auth0
+    Upload --> OpenAI
+    RAG --> OpenAI
+
+    %% Data flow for Upload Service
+    Upload --> PineconeDB
+
+    classDef frontend fill:#2196F3,stroke:#0D47A1,color:#FFF
+    classDef gateway fill:#FF9800,stroke:#E65100,color:#000
+    classDef backend fill:#4CAF50,stroke:#1B5E20,color:#FFF
+    classDef storage fill:#E91E63,stroke:#880E4F,color:#FFF
+    classDef external fill:#9C27B0,stroke:#4A148C,color:#FFF
+
+    class UI,LoginPage,UploadPage,BillingPage,ChatPage frontend
+    class Gateway gateway
+    class Auth,Upload,RAG backend
+    class S3,PineconeDB,PostgresDB storage
+    class OpenAI,Auth0 external
+```
