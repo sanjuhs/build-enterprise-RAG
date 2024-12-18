@@ -44,3 +44,12 @@ Backend Architecture:
 
 Because LLMS are so new and imperfect their business use cases are being changed and redefined every couples of week/ month.
 THis is why the app needs to be scalable and super suepr flexible to add new features and new use cases on the fly.
+
+in FastAPI we will have 3 main services:
+
+- Auth service
+- Upload service
+- RAG service
+- Gateway service
+
+We may use CursorRules file as well to help us write the code.
