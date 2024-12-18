@@ -1,4 +1,4 @@
-lets build enterprise RAG Application from scratch in 6 hrs
+# lets build enterprise RAG Application from scratch in 6 hrs
 
 You will need the following tools:
 
@@ -12,9 +12,9 @@ You will need the following tools:
 - S3 for file storage
 - Neondb for our postgres database
 
-Planning stage:
+# Planning stage:
 
-Features that busines users want:
+### Features that busines users want:
 
 - Upload documents
 - Chat with documents / AI
@@ -22,17 +22,24 @@ Features that busines users want:
 - Streaming of the Responses
 - Sclaability in terms of adding new features to the application without bloat or re-writing the entire application
 
-ITs not just the LLM its but everything that wraps around the LLM and the user.
+### Additional requirements:
+
+- Observanility amd Monitoring [ just to do site monitoring iwth ease as well as for LLMops - langfuse and others ]
+- Gaurd Rails [ corretcess + Not have PII( personal identifiable information) ]
+- Security [ prevent data from being leaked/ access to the data ]
+
+### ITs not just the LLM its but everything that wraps around the LLM and the user.
 
 We will start with Business Goals for most Enterprise RAG applications.
-What will the end user of the enterprise RAG application be able to see and do?
+
+## What will the end user of the enterprise RAG application be able to see and do?
 
 - Login page ( with working login credentials ) [ we cna use mannual login credentials for now, or can use OKTA or Auth0 ]
 - Upload page ( which will hold the uplaod pipeline inclduing emebedding and status of the upload )
 - Billing page ( which will hold the billing information and the billing history )
 - Main RAG chat application page ( which will hold the RAG application and the RAG Chat history )
 
-Backend Architecture:
+## Backend Architecture:
 
 - FastAPI - for the API - with microservices architecture / basically with gateways
 - Github Actions - for the deployment
@@ -45,7 +52,7 @@ Backend Architecture:
 Because LLMS are so new and imperfect their business use cases are being changed and redefined every couples of week/ month.
 THis is why the app needs to be scalable and super suepr flexible to add new features and new use cases on the fly.
 
-in FastAPI we will have 3 main services:
+## in FastAPI we will have 3 main services:
 
 - Auth service
 - Upload service
