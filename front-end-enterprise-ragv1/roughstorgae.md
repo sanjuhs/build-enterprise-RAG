@@ -1,9 +1,13 @@
-import type { DefaultSession, Session } from "next-auth";
-import type { DefaultJWT } from "next-auth/jwt";
+auth.ts
+
+```ts
+import type { User } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
+import type { Session } from "next-auth";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env variable is not defined");
@@ -11,42 +15,30 @@ if (!process.env.DATABASE_URL) {
 
 const sql = neon(process.env.DATABASE_URL!);
 
-// Define our custom types
-type UserRole = "guest" | "user" | "admin";
-
-// Extend the built-in types
-declare module "next-auth" {
-  interface Session {
-    user: {
-      role: UserRole;
-    } & DefaultSession["user"];
-  }
-
-  interface User {
-    role: UserRole;
-  }
+interface ExtendedUser extends User {
+  role: "guest" | "user" | "admin";
 }
 
-declare module "next-auth/jwt" {
-  interface JWT extends DefaultJWT {
-    role?: UserRole;
-  }
+interface ExtendedJWT extends JWT {
+  role: "guest" | "user" | "admin";
 }
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(1, "Password is required"),
-  action: z.string().optional(),
 });
 
 const signUpSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   name: z.string().min(1, "Name is required"),
-  action: z.string(),
 });
 
-async function createUser(email: string, password: string, name: string) {
+async function createUser(
+  email: string,
+  password: string,
+  name: string
+): Promise<ExtendedUser> {
   try {
     const result = await sql`
       INSERT INTO users (email, password_hash, name, role)
@@ -58,42 +50,29 @@ async function createUser(email: string, password: string, name: string) {
       )
       RETURNING id::text, email, name, role
     `;
-
-    if (!result[0]) {
-      throw new Error("Failed to create user");
-    }
-
-    return {
-      id: result[0].id.toString(),
-      name: result[0].name,
-      email: result[0].email,
-      role: result[0].role as UserRole,
-    };
+    return { ...result[0], id: result[0].id.toString() } as ExtendedUser;
   } catch (error) {
     console.error("Error creating user:", error);
     throw error;
   }
 }
 
-async function verifyUser(email: string, password: string) {
+async function verifyUser(
+  email: string,
+  password: string
+): Promise<ExtendedUser | null> {
   const result = await sql`
     SELECT id::text, email, name, role
     FROM users 
     WHERE email = ${email} 
     AND password_hash = crypt(${password}, password_hash)
   `;
-
-  if (!result[0]) return null;
-
-  return {
-    id: result[0].id.toString(),
-    name: result[0].name,
-    email: result[0].email,
-    role: result[0].role as UserRole,
-  };
+  return result[0]
+    ? ({ ...result[0], id: result[0].id.toString() } as ExtendedUser)
+    : null;
 }
 
-async function createGuestUser(email: string) {
+async function createGuestUser(email: string): Promise<ExtendedUser> {
   const result = await sql`
     INSERT INTO users (email, password_hash, name, role)
     VALUES (
@@ -104,17 +83,7 @@ async function createGuestUser(email: string) {
     )
     RETURNING id::text, email, name, role
   `;
-
-  if (!result[0]) {
-    throw new Error("Failed to create guest user");
-  }
-
-  return {
-    id: result[0].id.toString(),
-    name: result[0].name,
-    email: result[0].email,
-    role: result[0].role as UserRole,
-  };
+  return { ...result[0], id: result[0].id.toString() } as ExtendedUser;
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -125,13 +94,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Credentials({
       async authorize(credentials) {
         try {
-          if (!credentials) return null;
-
           if (credentials.action === "signup") {
             const { email, password, name } = await signUpSchema.parseAsync(
               credentials
             );
-            return await createUser(email, password, name);
+            return (await createUser(email, password, name)) as ExtendedUser;
           }
 
           const { email, password } = await signInSchema.parseAsync(
@@ -139,10 +106,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           );
 
           if (email.startsWith("guest_")) {
-            return await createGuestUser(email);
+            return (await createGuestUser(email)) as ExtendedUser;
           }
 
-          return await verifyUser(email, password);
+          const user = await verifyUser(email, password);
+          return user as ExtendedUser | null;
         } catch (error) {
           console.error("Auth error:", error);
           return null;
@@ -151,15 +119,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }): Promise<ExtendedJWT> {
       if (user) {
-        token.role = user.role;
+        token.id = user.id as string;
+        token.role = (user as ExtendedUser).role as "guest" | "user" | "admin";
       }
-      return token;
+      return token as ExtendedJWT;
     },
     async session({ session, token }) {
-      if (session.user && token.role) {
-        session.user.role = token.role;
+      if (session.user) {
+        session.user.id = token.id as string;
+        (session.user as ExtendedUser).role = token.role as
+          | "guest"
+          | "user"
+          | "admin";
       }
       return session;
     },
@@ -169,11 +142,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 // Helper function to check user roles
 export function hasRequiredRole(
   session: Session | null,
-  requiredRoles: UserRole[]
+  requiredRoles: ("guest" | "user" | "admin")[]
 ) {
   return (
     session?.user &&
-    session.user.role &&
-    requiredRoles.includes(session.user.role)
+    "role" in session.user &&
+    requiredRoles.includes((session.user as ExtendedUser).role)
   );
 }
+```

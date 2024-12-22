@@ -133,3 +133,75 @@ graph TB
     class S3,PineconeDB,PostgresDB storage
     class OpenAI,Auth0 external
 ```
+
+A few more things to note:
+
+Lets just start with the basic features and then we can add more features as we go along. We will try to simplify things and keep things as serverless as possible for the current bill as we lack the resources to run a server.
+
+## Serverless Architecture:
+
+- Next.js API Routes (Edge Runtime) - replacing FastAPI
+- Vercel for deployment (instead of separate GitHub Actions)
+- Pinecone - for vector embeddings
+- OpenAI - for embeddings
+- S3 for file storage
+- Neondb for postgres database
+
+### Next.js API Routes will handle:
+
+- Auth service (using NextAuth.js)
+- Upload pipeline including:
+  - File chunking
+  - Embedding generation
+  - Vector storage
+- RAG service
+
+```mermaid
+graph TB
+    subgraph "Frontend + API (Next.js)"
+        UI[Web Interface]
+        APIRoutes[Next.js API Routes]
+        UI --> APIRoutes
+    end
+
+    subgraph "Storage & Databases"
+        S3[(S3 Storage)]
+        PineconeDB[(Pinecone Vector DB)]
+        PostgresDB[(NeonDB PostgreSQL)]
+    end
+
+    subgraph "External Services"
+        OpenAI[OpenAI API]
+        Auth0[Auth0/OKTA]
+    end
+
+    %% Service connections
+    APIRoutes --> S3
+    APIRoutes --> PineconeDB
+    APIRoutes --> PostgresDB
+    APIRoutes --> OpenAI
+    APIRoutes --> Auth0
+
+    classDef frontend fill:#2196F3,stroke:#0D47A1,color:#FFF
+    classDef storage fill:#E91E63,stroke:#880E4F,color:#FFF
+    classDef external fill:#9C27B0,stroke:#4A148C,color:#FFF
+
+    class UI,APIRoutes frontend
+    class S3,PineconeDB,PostgresDB storage
+    class OpenAI,Auth0 external
+```
+
+### Benefits of Serverless Approach:
+
+1. Simplified deployment
+2. Lower costs (pay per request)
+3. Automatic scaling
+4. Reduced maintenance overhead
+5. Better development experience (unified codebase)
+
+### Considerations:
+
+- Edge Runtime has a timeout limit (30s on Vercel), so for longer operations we might need to:
+  - Implement chunking on the client side
+  - Use background jobs for large files
+  - Consider using Vercel's Edge Functions for longer-running tasks

@@ -65,6 +65,36 @@ export default function AuthPage() {
     }
   };
 
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("signup-email");
+    const password = formData.get("signup-password");
+    const name = formData.get("name");
+
+    if (!email || !password || !name) return;
+
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        name,
+        action: "signup",
+      });
+
+      if (result?.error) {
+        console.error(result.error);
+      } else {
+        router.push("/rag");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
       {/* Left side with abstract image */}
@@ -182,34 +212,45 @@ export default function AuthPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      placeholder="John Doe"
-                      className="border-[#028ce5]/20 focus-visible:ring-[#028ce5]"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="name@example.com"
-                      className="border-[#028ce5]/20 focus-visible:ring-[#028ce5]"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      className="border-[#028ce5]/20 focus-visible:ring-[#028ce5]"
-                    />
-                  </div>
-                  <Button className="w-full bg-[#028ce5] hover:bg-[#012042]">
-                    Create account
-                  </Button>
+                  <form onSubmit={handleSignup}>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          placeholder="John Doe"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-email">Email</Label>
+                        <Input
+                          id="signup-email"
+                          name="signup-email"
+                          type="email"
+                          placeholder="name@example.com"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-password">Password</Label>
+                        <Input
+                          id="signup-password"
+                          name="signup-password"
+                          type="password"
+                          required
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full bg-[#028ce5] hover:bg-[#012042]"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Loading..." : "Create account"}
+                      </Button>
+                    </div>
+                  </form>
                 </CardContent>
               </Card>
             </TabsContent>
