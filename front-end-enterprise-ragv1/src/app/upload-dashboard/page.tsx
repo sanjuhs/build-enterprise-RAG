@@ -1,15 +1,16 @@
-// import { auth } from "@/auth";
-// import { redirect } from "next/navigation";
-// import { Button } from "@/components/ui/button";
+"use client";
+
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { NavBar } from "@/components/shared/nav-bar";
 
 export default function UploadDashboardPage() {
   return (
     <AuthProvider requiredRoles={["user", "admin"]}>
-      <div className="flex min-h-screen flex-col">
+      <div className="min-h-screen flex flex-col">
         <NavBar />
-        {/* Rest of your page content */}
+        <div className="container mx-auto p-6 flex-1">
+          {/* Rest of your upload dashboard content */}
+        </div>
       </div>
     </AuthProvider>
   );

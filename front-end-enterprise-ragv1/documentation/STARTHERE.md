@@ -17,3 +17,17 @@ Externally for Vercel you may need to set up the following variables : 5. The NE
 
 Lets start with the Login page as for any enterprise app this is the first page that users will see and it will determine the amount of access they have to the app.
 When you first run the app you will see the login page.
+
+Schema for the database is as follows :
+
+```sql
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL, -- Store hashed passwords
+    email VARCHAR(255) UNIQUE NOT NULL,
+    role VARCHAR(50) NOT NULL CHECK (role IN ('guest', 'user', 'admin')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```

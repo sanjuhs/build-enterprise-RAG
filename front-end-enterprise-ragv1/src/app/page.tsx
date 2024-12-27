@@ -1,24 +1,74 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight, MessageSquare, FileText, Zap } from "lucide-react";
+"use client";
 
-export default function Home() {
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { signOut } from "next-auth/react";
+import { User, ArrowRight, MessageSquare, FileText, Zap } from "lucide-react";
+
+export default function LandingPage() {
+  const { data: session } = useSession();
+
   return (
     <div className="flex min-h-screen flex-col">
-      <nav className="border-b">
-        <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 md:px-8">
-          <div className="font-bold text-xl">
-            super<span className="text-gradient">RAG</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" className="text-sm" asChild>
-              <a href="/auth?tab=login">Log in</a>
-            </Button>
-            <Button className="text-sm" asChild>
-              <a href="/auth?tab=signup">Sign up</a>
-            </Button>
-          </div>
-        </div>
-      </nav>
+      <header className="px-4 lg:px-6 h-14 flex items-center">
+        <Link className="flex items-center justify-center" href="/">
+          <span className="text-xl font-bold">
+            <span className="text-[#012042]">Super</span>
+            <span className="text-gradient">RAG</span>
+          </span>
+        </Link>
+        <nav className="ml-auto flex items-center gap-4">
+          {session ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 text-[#012042] hover:text-[#028ce5]"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="font-medium">
+                    {session.user?.name || session.user?.email || "User"}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/rag">Go to App</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">Profile & Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => signOut({ callbackUrl: "/auth" })}
+                >
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Button variant="ghost" className="text-sm" asChild>
+                <Link href="/auth?tab=login">Log in</Link>
+              </Button>
+              <Button className="text-sm" asChild>
+                <Link href="/auth?tab=signup">Sign up</Link>
+              </Button>
+            </>
+          )}
+        </nav>
+      </header>
 
       <main className="flex-1">
         <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
