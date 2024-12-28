@@ -24,12 +24,16 @@ interface Message {
 export default function RAGPage() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>(() => [
     { role: "assistant", content: "Hello! How can I help you today?" },
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputHeight, setInputHeight] = useState(72);
+  const [isLoading, setIsLoading] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<number | null>(
+    null
+  );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,22 +43,76 @@ export default function RAGPage() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
 
     const newMessages: Message[] = [
       ...messages,
-      { role: "user" as const, content: inputMessage.trim() },
+      { role: "user", content: inputMessage.trim() },
     ];
     setMessages(newMessages);
     setInputMessage("");
+    setIsLoading(true);
 
-    setTimeout(() => {
-      setMessages([
-        ...newMessages,
-        { role: "assistant" as const, content: "This is a sample response." },
+    try {
+      const response = await fetch("/api/ragchat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: newMessages,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to get response");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader available");
+
+      let accumulatedContent = "";
+      const decoder = new TextDecoder();
+
+      // Add placeholder and set streaming ID
+      const streamingIndex = newMessages.length;
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      setStreamingMessageId(streamingIndex);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        accumulatedContent += chunk;
+
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: accumulatedContent,
+          };
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error("Error in chat:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            error instanceof Error
+              ? error.message
+              : "Sorry, I encountered an error. Please try again.",
+        },
       ]);
-    }, 1000);
+    } finally {
+      setStreamingMessageId(null);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -107,18 +165,19 @@ export default function RAGPage() {
         </div>
 
         <div className="flex-1 flex flex-col h-full relative">
-          <main className="flex-1 overflow-hidden md:pt-0 pt-14">
+          <main className="flex-1 overflow-hidden">
             <ScrollArea
-              className={`h-screen w-full`}
+              className={`h-screen w-full md:pt-0 pt-16`}
               style={{ paddingBottom: `${inputHeight + 16}px` }}
             >
               <div className="max-w-3xl mx-auto px-4 py-6">
                 <div className="space-y-4">
                   {messages.map((message, index) => (
                     <ChatMessage
-                      key={index}
+                      key={`${index}-${message.role}`}
                       role={message.role}
                       content={message.content}
+                      isStreaming={index === streamingMessageId}
                     />
                   ))}
                   <div ref={messagesEndRef} />
@@ -133,6 +192,7 @@ export default function RAGPage() {
               onChange={setInputMessage}
               onSend={handleSendMessage}
               onHeightChange={setInputHeight}
+              isLoading={isLoading}
             />
           </div>
         </div>

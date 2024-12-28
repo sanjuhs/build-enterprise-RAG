@@ -8,6 +8,7 @@ interface ChatInputProps {
   onChange: (value: string) => void;
   onSend: () => void;
   onHeightChange: (height: number) => void;
+  isLoading?: boolean;
 }
 
 export function ChatInput({
@@ -15,6 +16,7 @@ export function ChatInput({
   onChange,
   onSend,
   onHeightChange,
+  isLoading = false,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -48,18 +50,24 @@ export function ChatInput({
               onChange(e.target.value);
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              if (e.key === "Enter" && !e.shiftKey && !isLoading) {
                 e.preventDefault();
                 onSend();
               }
             }}
+            disabled={isLoading}
           />
           <Button
             size="icon"
             className="absolute right-2 bottom-2"
             onClick={onSend}
+            disabled={isLoading}
           >
-            <Send className="h-4 w-4" />
+            {isLoading ? (
+              <span className="animate-spin">⌛</span>
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>

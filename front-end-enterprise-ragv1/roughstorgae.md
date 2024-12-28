@@ -1,3 +1,96 @@
+Let me break down the issue and solution step by step:
+
+1. First, look at how ReactMarkdown renders code blocks:
+
+````markdown
+```css
+body {
+  margin: 0;
+}
+```
+````
+
+````
+
+2. ReactMarkdown converts this into HTML like this:
+```html
+<pre>
+  <code class="language-css">
+    body { margin: 0; }
+  </code>
+</pre>
+````
+
+3. In our current code, we're handling it wrong:
+
+```typescript
+components={{
+  pre: ({ children, className }) => (
+    <MarkdownCode className={className}>{children}</MarkdownCode>
+  ),
+  code: ({ children }) => (
+    <MarkdownCode className={className}>{children}</MarkdownCode> // This is wrong
+  ),
+}}
+```
+
+4. The fix should be:
+
+```typescript
+components={{
+  pre: ({ children }) => {
+    // Get the code element's props
+    const codeElement = children?.props;
+    return (
+      <MarkdownCode className={codeElement?.className}>
+        {codeElement?.children}
+      </MarkdownCode>
+    );
+  },
+  // Remove or simplify the code component
+  code: ({ children, inline }) => {
+    if (inline) {
+      return <code className="bg-muted px-1 rounded">{children}</code>;
+    }
+    return children;
+  },
+}}
+```
+
+5. Let's update the ChatMessage component with this fix:
+
+```typescript
+<ReactMarkdown
+  remarkPlugins={[remarkGfm]}
+  components={{
+    pre: ({ children }) => {
+      const codeProps = children?.props;
+      console.log("Code props:", codeProps); // Debug log
+      return (
+        <MarkdownCode className={codeProps?.className}>
+          {codeProps?.children}
+        </MarkdownCode>
+      );
+    },
+    code: ({ children, inline }) => {
+      if (inline) {
+        return <code className="bg-muted px-1 rounded">{children}</code>;
+      }
+      return children;
+    },
+    // ... other components stay the same ...
+  }}
+>
+```
+
+This should fix the language detection because:
+
+1. We're getting the language from the correct element (code, not pre)
+2. We're handling inline code differently from code blocks
+3. We're properly passing the className that contains the language information
+
+Would you like me to provide the complete updated code?
+
 auth.ts
 
 ```ts
