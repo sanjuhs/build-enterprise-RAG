@@ -27,6 +27,11 @@ export default function AuthPage() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email");
     const password = formData.get("password");
+    const csrfResponse = await fetch("/api/auth/csrf");
+    const { csrfToken } = await csrfResponse.json();
+
+    // Add token to form data
+    formData.append("csrfToken", csrfToken);
 
     try {
       const result = await signIn("credentials", {

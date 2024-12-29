@@ -6,6 +6,7 @@ const protectedPaths = [
   "/upload-dashboard",
   "/explore-files",
   "/system-monitoring",
+  "/api/ragchat",
 ];
 
 export default auth((req) => {
@@ -15,6 +16,27 @@ export default auth((req) => {
     path.startsWith(prefix)
   );
 
+  if (path.startsWith("/api/")) {
+    const origin = req.headers.get("origin");
+    // for debugging
+    // console.log({
+    //   env: process.env.NODE_ENV,
+    //   configuredUrl: process.env.NEXT_PUBLIC_APP_URL,
+    //   currentOrigin: origin,
+    // });
+
+    if (process.env.NODE_ENV === "development" || !origin) {
+      return NextResponse.next();
+    }
+
+    if (origin !== process.env.NEXT_PUBLIC_APP_URL) {
+      return new NextResponse(
+        JSON.stringify({ error: "Unauthorized origin" }),
+        { status: 403, headers: { "content-type": "application/json" } }
+      );
+    }
+  }
+
   if (isProtectedPath && !isLoggedIn) {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
@@ -23,5 +45,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

@@ -34,3 +34,48 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Database Setup
+
+1. Create a new database in Neon Dashboard
+2. Copy the connection string and set it as `NEON_DOCSDB_URL` in your `.env.local`
+3. Run the database setup script:
+   ```bash
+   npm run setup-db
+   # or
+   yarn setup-db
+   # or
+   pnpm setup-db
+   ```
+
+### Making yourself an admin
+
+After setting up your account, you can make yourself an admin by running this SQL query in the Neon SQL Editor:
+
+```sql
+UPDATE users
+SET role = 'admin'
+WHERE email = 'your.email@example.com';
+```
+
+### Managing User Roles
+
+You can make a user an admin in two ways:
+
+1. Using the Neon SQL Editor:
+
+```sql
+UPDATE users
+SET role = 'admin'
+WHERE email = 'your.email@example.com';
+```
+
+2. Using the CLI command:
+
+```bash
+npm run make-admin your.email@example.com
+# or
+yarn make-admin your.email@example.com
+# or
+pnpm make-admin your.email@example.com
+```

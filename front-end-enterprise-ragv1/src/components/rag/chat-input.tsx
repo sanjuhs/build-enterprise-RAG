@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 interface ChatInputProps {
   value: string;
@@ -21,7 +21,7 @@ export function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize function
-  const adjustHeight = () => {
+  const adjustHeight = useCallback(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -30,12 +30,12 @@ export function ChatInput({
     const finalHeight = Math.max(72, newHeight);
     textarea.style.height = `${finalHeight}px`;
     onHeightChange(finalHeight);
-  };
+  }, [onHeightChange]);
 
   // Adjust height on value change
   useEffect(() => {
     adjustHeight();
-  }, [value]);
+  }, [value, adjustHeight]);
 
   return (
     <div className="px-4 py-4">

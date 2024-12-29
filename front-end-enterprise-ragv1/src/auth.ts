@@ -5,11 +5,11 @@ import Credentials from "next-auth/providers/credentials";
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL env variable is not defined");
+if (!process.env.NEON_DOCSDB_URL) {
+  throw new Error("NEON_DOCSDB_URL env variable is not defined");
 }
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = neon(process.env.NEON_DOCSDB_URL!);
 
 // Define our custom types
 type UserRole = "guest" | "user" | "admin";
@@ -18,6 +18,7 @@ type UserRole = "guest" | "user" | "admin";
 declare module "next-auth" {
   interface Session {
     user: {
+      id: string;
       role: UserRole;
     } & DefaultSession["user"];
   }
@@ -154,12 +155,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.sub = user.id;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.role) {
-        session.user.role = token.role;
+      if (session.user) {
+        session.user.id = token.sub!;
+        session.user.role = token.role as UserRole;
       }
       return session;
     },

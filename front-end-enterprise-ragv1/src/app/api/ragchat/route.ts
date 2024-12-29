@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PROVIDER_CONFIGS } from "./models.config";
+import { auth } from "@/auth";
 
 interface OpenAIError {
   code?: string;
@@ -8,6 +9,12 @@ interface OpenAIError {
 }
 
 export async function POST(req: Request) {
+  // Get session using the auth helper directly
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const {
       messages,
