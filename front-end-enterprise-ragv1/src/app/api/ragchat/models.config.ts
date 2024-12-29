@@ -43,9 +43,30 @@ const openAIProvider: ModelConfig = {
   },
 };
 
+// Deepseek Provider implementation
+const deepseekProvider: ModelConfig = {
+  baseURL: "https://api.deepseek.com/v1",
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  models: ["deepseek-chat"],
+  createClient: () =>
+    new OpenAI({
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: "https://api.deepseek.com/v1",
+    }),
+  createCompletion: async (client, messages, model) => {
+    return client.chat.completions.create({
+      model,
+      messages,
+      temperature: 0.7,
+      stream: true,
+    });
+  },
+};
+
 // Export only OpenAI for now
 export const PROVIDER_CONFIGS: Record<string, ModelConfig> = {
   openai: openAIProvider,
+  deepseek: deepseekProvider,
   /* Commenting out other providers for now
   deepseek: { ... },
   mistral: { ... },

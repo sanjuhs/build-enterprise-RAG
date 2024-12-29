@@ -18,8 +18,8 @@ export async function POST(req: Request) {
   try {
     const {
       messages,
-      provider = "openai",
-      model = "gpt-3.5-turbo",
+      provider = "deepseek",
+      model = "deepseek-chat",
     } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
