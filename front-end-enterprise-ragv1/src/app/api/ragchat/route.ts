@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { error: "OpenAI API key is not configured" },
+        { error: "OpenAI API / DeepSeek / Anthropic key is not configured" },
         { status: 500 }
       );
     }

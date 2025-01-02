@@ -10,3 +10,16 @@ if (!process.env.NEON_DOCSDB_URL) {
 }
 
 export const sql = neon(process.env.NEON_DOCSDB_URL);
+
+export async function getUploadRecord(id: string) {
+  const record = await sql`
+    SELECT * FROM documents WHERE document_id = ${id} LIMIT 1
+  `;
+  return record[0];
+}
+
+export async function deleteUploadRecord(id: string) {
+  await sql`
+    DELETE FROM documents WHERE document_id = ${id}
+  `;
+}

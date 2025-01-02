@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "setup-db": "tsx scripts/setup-db.ts",
-    "make-admin": "tsx scripts/manage-user.ts"
+    "make-admin": "tsx scripts/manage-user.ts",
+    "migrate-db": "tsx scripts/migrate_db.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.11",
@@ -36,6 +37,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.469.0",
     "mermaid": "^11.4.1",

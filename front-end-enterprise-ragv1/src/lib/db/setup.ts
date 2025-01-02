@@ -55,8 +55,8 @@ export async function setupDatabase() {
         status VARCHAR(255) NOT NULL,
         metadata JSONB DEFAULT '{}'::jsonb,
         visibility VARCHAR(20) DEFAULT 'private',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `;
 

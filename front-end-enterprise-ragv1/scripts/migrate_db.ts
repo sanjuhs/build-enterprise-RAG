@@ -15,8 +15,9 @@ async function migrateDatabase() {
 
     // Execute queries sequentially without transaction
     await sql`
-      ALTER TABLE documents
-      ADD COLUMN IF NOT EXISTS document_metadata JSONB DEFAULT '{}'::jsonb
+      ALTER TABLE documents 
+ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE,
+ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE;
     `;
 
     // await sql`

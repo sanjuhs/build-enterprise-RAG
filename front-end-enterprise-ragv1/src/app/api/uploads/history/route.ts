@@ -16,7 +16,9 @@ export async function GET() {
         status,
         created_at as "createdAt",
         updated_at as "updatedAt",
-        s3_url as "s3Url"
+        s3_url as "s3Url",
+        metadata as "metadata",
+        visibility as "visibility"
       FROM documents 
       WHERE user_id = ${session.user.id}
       ORDER BY updated_at DESC
