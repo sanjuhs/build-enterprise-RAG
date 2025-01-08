@@ -16,20 +16,26 @@ const BYPASS_AUTH = process.env.NODE_ENV === "production";
 
 export async function POST(request: Request) {
   try {
+    console.log("1. Starting presigned URL generation");
     let userId = "test-user-1"; // Default for testing
 
     if (!BYPASS_AUTH) {
+      console.log("2. Auth check enabled, getting session");
       const session = await auth();
-      console.log("Full session:", JSON.stringify(session, null, 2));
+      console.log("3. Full session data:", JSON.stringify(session, null, 2));
 
       if (!session?.user?.id) {
-        console.log("Missing user ID in session");
+        console.log("4. Missing user ID in session");
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
+      console.log("5. Using user ID:", session.user.id);
       userId = session.user.id;
+    } else {
+      console.log("2. Auth check bypassed, using test user");
     }
 
     const { fileName } = await request.json();
+    console.log("6. Generating presigned URL for file:", fileName);
 
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET_NAME!,

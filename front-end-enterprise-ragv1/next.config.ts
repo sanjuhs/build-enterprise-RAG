@@ -7,6 +7,16 @@ const nextConfig: NextConfig = {
     NEON_VECTORDB_URL: process.env.NEON_VECTORDB_URL,
     NEON_VECTORDB_URL_READONLY: process.env.NEON_VECTORDB_URL_READONLY,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "super-rag.s3.us-east-1.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

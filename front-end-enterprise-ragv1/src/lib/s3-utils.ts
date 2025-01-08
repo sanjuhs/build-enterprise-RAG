@@ -40,3 +40,35 @@ export async function generatePresignedUrl(
     throw new Error("Failed to generate presigned URL");
   }
 }
+
+export async function generatePresignedUrlForAiGen(
+  userId: string,
+  fileName: string
+) {
+  console.log("1. Starting presigned URL request for:", { userId, fileName });
+
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  console.log("2. Using base URL:", baseUrl);
+
+  const response = await fetch(`${baseUrl}/api/uploads/presigned-url`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      fileName: `${userId}/ai_gen/${fileName}`,
+      contentType: "image/jpeg",
+    }),
+  });
+
+  console.log("3. Presigned URL response status:", response.status);
+
+  if (!response.ok) {
+    console.log("4. Failed to get presigned URL:", await response.text());
+    throw new Error("Failed to get presigned URL");
+  }
+
+  const data = await response.json();
+  console.log("5. Successfully got presigned URL");
+  return data;
+}

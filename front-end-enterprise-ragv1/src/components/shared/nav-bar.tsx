@@ -31,6 +31,11 @@ export function NavBar() {
 
   const navItems = [
     {
+      title: "Dashboard",
+      href: "/dashboard",
+      description: "Main Dashboard",
+    },
+    {
       title: "Chat",
       href: "/rag",
       description: "Chat with your documents using AI",

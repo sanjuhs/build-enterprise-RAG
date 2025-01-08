@@ -44,7 +44,7 @@ export default function AuthPage() {
         // Handle error
         console.error(result.error);
       } else {
-        router.push("/rag"); // Redirect to RAG page
+        router.push("/dashboard"); // Redirect to RAG page
       }
     } finally {
       setIsLoading(false);
