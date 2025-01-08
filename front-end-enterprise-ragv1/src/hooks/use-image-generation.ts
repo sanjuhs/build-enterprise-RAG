@@ -76,7 +76,18 @@ export function useImageGeneration() {
   useEffect(() => {
     const savedGuidelines = localStorage.getItem("imageGenGuidelines");
     if (savedGuidelines) {
-      setGuidelines(JSON.parse(savedGuidelines));
+      try {
+        const parsed = JSON.parse(savedGuidelines);
+        // Merge with defaults to ensure all fields exist
+        setGuidelines(() => ({
+          ...defaultGuidelines,
+          ...parsed,
+        }));
+      } catch (error) {
+        console.error("Error parsing saved guidelines:", error);
+        // Fallback to defaults if parse fails
+        setGuidelines(defaultGuidelines);
+      }
     }
   }, []);
 

@@ -1,14 +1,17 @@
 "use client";
 
 import { NavBar } from "@/components/shared/nav-bar";
-// import { useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { GuidelinesTab } from "@/components/image-gen/GuidelinesTab";
 import { GenerationTab } from "@/components/image-gen/GenerationTab";
 import { ReviewTab } from "@/components/image-gen/ReviewTab";
-// import { Guidelines, ImageItem } from "@/types/image-gen";
 import { useImageGeneration } from "@/hooks/use-image-generation";
+// import { Guidelines, ImageItem } from "@/types/image-gen";
+// import { useState, useCallback } from "react";
+// import { useState } from "react";
+// import { Guidelines } from "@/types/image-gen";
+// import { defaultGuidelines } from "@/data/default-guidelines";
 
 export default function ImageGenMLR() {
   const {
@@ -27,6 +30,10 @@ export default function ImageGenMLR() {
     setSelectedDate,
     loadImages,
   } = useImageGeneration();
+
+  //   const [guidelines2, setGuidelines2] = useState<Guidelines>(defaultGuidelines);
+
+  //   console.log("Page level guidelines:", guidelines2);
 
   return (
     <AuthProvider requiredRoles={["guest", "user", "admin"]}>
@@ -64,6 +71,7 @@ export default function ImageGenMLR() {
 
             <TabsContent value="review">
               <ReviewTab
+                guidelines={guidelines}
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 images={images}
