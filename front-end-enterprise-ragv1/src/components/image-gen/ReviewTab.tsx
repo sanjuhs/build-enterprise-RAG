@@ -65,7 +65,6 @@ export function ReviewTab({
     setIsAnalyzing(true);
     setAnalysisError(null);
 
-    // Convert S3 URL to public URL if needed
     const imageUrl = selectedImage.url.startsWith("s3://")
       ? `https://super-rag.s3.us-east-1.amazonaws.com/${selectedImage.url.replace(
           "s3://super-rag/",
@@ -75,92 +74,115 @@ export function ReviewTab({
 
     console.log("Using image URL:", imageUrl);
 
-    const messages = [
+    // Define guidelines to analyze
+    const guidelinesList = [
       {
-        role: "system",
-        content: `You are an expert at analyzing medical/pharmaceutical images. You MUST respond in valid JSON format only. Analyze the given image against these guidelines and provide a detailed analysis.
-        
-        Your response must be a valid JSON object with this exact structure:
-        {
-          "overallScore": number,
-          "analyses": [
-            {
-              "category": string,
-              "score": number,
-              "feedback": string
-            }
-          ],
-          "generalImprovements": string[]
-        }
-
-        Do not include any other text or explanation outside of this JSON structure.`,
+        key: "accessibility",
+        name: "Accessibility",
+        value: guidelines.accessibility,
       },
       {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `Analyze this image against these guidelines:
-            1. Accessibility: ${guidelines.accessibility}
-            2. Audience Guidelines: ${guidelines.audience_guidelines}
-            3. Brand Identity: ${guidelines.brand_identity}
-            4. Regulatory Compliance: ${guidelines.regulatory_compliance}
-            5. Drug Brief: ${guidelines.drug_brief}
-            6. Medical & Scientific Info: ${guidelines.medical_scientific}
-            7. Technical Specs: ${guidelines.technical_specs}
-            
-            for each guideline, provide:
-            - A score out of 5
-            - Specific feedback
-            - Suggested improvements
-
-            Please respond only in valid JSON format. Do not include any other text or explanation outside of this JSON structure.
-            
-            `,
-          },
-          {
-            type: "image_url",
-            image_url: {
-              url: imageUrl,
-            },
-          },
-        ],
+        key: "audience",
+        name: "Audience Guidelines",
+        value: guidelines.audience_guidelines,
+      },
+      {
+        key: "brand",
+        name: "Brand Identity",
+        value: guidelines.brand_identity,
+      },
+      {
+        key: "regulatory",
+        name: "Regulatory Compliance",
+        value: guidelines.regulatory_compliance,
+      },
+      { key: "drug", name: "Drug Brief", value: guidelines.drug_brief },
+      {
+        key: "medical",
+        name: "Medical & Scientific Info",
+        value: guidelines.medical_scientific,
+      },
+      {
+        key: "technical",
+        name: "Technical Specs",
+        value: guidelines.technical_specs,
       },
     ];
 
-    const requestBody = {
-      imageUrl: selectedImage.url,
-      messages,
-    };
-    console.log("Full request body being sent:", requestBody);
-
     try {
-      const response = await fetch("/api/imgchat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      const analyses = [];
+      const improvements = new Set<string>();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to analyze image");
+      // Analyze each guideline separately
+      for (const guideline of guidelinesList) {
+        const messages = [
+          {
+            role: "system",
+            content: `You are an expert at analyzing medical/pharmaceutical images. Analyze the image specifically for ${guideline.name} guidelines. Respond in JSON format only.`,
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Analyze this image specifically for the following guideline:
+                ${guideline.name}: ${guideline.value}
+                
+                Provide a score out of 5 and detailed feedback.
+                
+                Return in this JSON format only:
+                {
+                  "score": number,
+                  "feedback": string,
+                  "improvements": string[]
+                }`,
+              },
+              {
+                type: "image_url",
+                image_url: { url: imageUrl },
+              },
+            ],
+          },
+        ];
+
+        const response = await fetch("/api/imgchat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages }),
+        });
+
+        if (!response.ok)
+          throw new Error(`Failed to analyze ${guideline.name}`);
+
+        const data = await response.json();
+        const result = JSON.parse(data.content);
+
+        analyses.push({
+          category: guideline.name,
+          score: result.score,
+          feedback: result.feedback,
+        });
+
+        // Add improvements to the set to avoid duplicates
+        result.improvements.forEach((imp: string) => improvements.add(imp));
       }
 
-      const data = await response.json();
-      console.log("Received response:", data);
+      // Calculate overall score as average
+      const overallScore = Number(
+        (
+          analyses.reduce((sum, a) => sum + a.score, 0) / analyses.length
+        ).toFixed(1)
+      );
 
-      try {
-        // Try to parse as JSON
-        const analysis = JSON.parse(data.content) as ImageAnalysis;
-        console.log("Parsed analysis:", analysis);
-        setAnalysisResult({ ...analysis, isJson: true });
-      } catch {
-        // If parsing fails, store as raw content
-        console.log("Not valid JSON, storing as raw content");
-        setAnalysisResult({ content: data.content, isJson: false });
-      }
+      // Combine results
+      const finalAnalysis = {
+        isJson: true,
+        overallScore,
+        analyses,
+        generalImprovements: Array.from(improvements),
+      };
+
+      setAnalysisResult(finalAnalysis as ImageAnalysis);
     } catch (error) {
       console.error("Error analyzing image:", error);
       setAnalysisError(
