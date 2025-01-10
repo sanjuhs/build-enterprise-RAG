@@ -36,7 +36,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* Experimental Features Section */}
+          {/* Updated Experimental Features Section */}
           <section>
             <h2 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-2">
               Experimental Features
@@ -49,7 +49,13 @@ export default function Dashboard() {
                 icon="🎯"
                 experimental
               />
-              {/* Add more experimental features here */}
+              <DashboardCard
+                title="Medical & Legal Image MLR"
+                description="Generate and review medical/legal themed images with AI assistance. Create professional visuals for healthcare and legal documentation."
+                href="/exp/imagegenmlr"
+                icon="⚕️"
+                experimental
+              />
             </div>
           </section>
         </main>

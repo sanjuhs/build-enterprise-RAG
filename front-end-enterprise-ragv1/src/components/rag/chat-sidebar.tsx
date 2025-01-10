@@ -5,13 +5,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Settings, User, ChevronDown } from "lucide-react";
-import { signOut } from "next-auth/react";
-import { useSession } from "next-auth/react";
+import { Plus, User, ChevronDown } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 
 interface ChatSidebarProps {
   isExpanded: boolean;
@@ -20,49 +18,68 @@ interface ChatSidebarProps {
 export function ChatSidebar({ isExpanded }: ChatSidebarProps) {
   const { data: session } = useSession();
 
-  const navItems = [
-    { label: "Chat", href: "/rag" },
-    { label: "Upload", href: "/upload-dashboard" },
-    { label: "Explore Files", href: "/explore-files" },
-    { label: "System Monitor", href: "/system-monitoring" },
+  const userNavItems = [
+    { label: "Profile & Settings", href: "/profile" },
+    { label: "Help Center", href: "/help" },
+    { label: "Log out", onClick: () => signOut({ callbackUrl: "/auth" }) },
   ];
-
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/auth" });
-  };
 
   return (
     <div className="flex flex-col h-full text-sm">
-      <div className="p-4 mb-2">
+      <div className="p-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className={`w-full justify-between ${
-                isExpanded ? "px-2" : "px-0"
-              }`}
+              className={`w-full ${isExpanded ? "px-2" : "px-0"}`}
             >
-              <h1
-                className={`font-bold ${
-                  isExpanded ? "text-xl" : "text-xs"
-                } flex items-center gap-2`}
-              >
-                {isExpanded ? (
-                  <>
-                    <span className="text-[#012042]">Super</span>
-                    <span className="text-gradient">RAG</span>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </>
-                ) : (
-                  <span className="text-gradient">SR</span>
-                )}
-              </h1>
+              <div className="flex items-center justify-between ">
+                <div
+                  className={`font-bold ${isExpanded ? "text-xl" : "text-xs"}`}
+                >
+                  {isExpanded ? (
+                    <div className="flex items-center text-sm">
+                      <span className="text-[#012042]">Super</span>
+                      <span className="text-gradient">RAG</span>
+                      <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <span className="text-gradient">SR</span>
+                  )}
+                </div>
+              </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
-            {navItems.map((item) => (
-              <DropdownMenuItem key={item.href} asChild>
-                <Link href={item.href}>{item.label}</Link>
+            <div className="px-2 py-1.5 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <User className="h-4 w-4" />
+                <span className="truncate font-medium">
+                  {session?.user?.name || session?.user?.email || "Guest"}
+                </span>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <button
+                onClick={() => (window.location.href = "/dashboard")}
+                className="w-full text-left px-2 py-1.5 cursor-pointer"
+              >
+                Dashboard
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {userNavItems.map((item) => (
+              <DropdownMenuItem key={item.label}>
+                {item.href ? (
+                  <Link href={item.href} className="w-full">
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button onClick={item.onClick} className="w-full text-left">
+                    {item.label}
+                  </button>
+                )}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -98,41 +115,6 @@ export function ChatSidebar({ isExpanded }: ChatSidebarProps) {
           </Button>
         </div>
       </ScrollArea>
-
-      <div className="border-t mt-auto p-4 dark:border-gray-700">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className={`w-full ${
-                isExpanded ? "justify-start" : "justify-center p-2"
-              }`}
-            >
-              <User className="h-4 w-4" />
-              {isExpanded && (
-                <>
-                  <span className="ml-2 truncate">
-                    {session?.user?.name || session?.user?.email || "Guest"}
-                  </span>
-                  <Settings className="ml-auto h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/profile">Profile & Settings</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/help">Help Center</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
     </div>
   );
 }
