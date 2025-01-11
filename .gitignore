@@ -43,3 +43,53 @@ __pycache__
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+venv/
+env/
+env.bak/
+
+# IDE and editor files
+*.idea/
+*.vscode/
+*.swp
+*.swo
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Test and coverage
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+*.pot
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Environment variables
+.env
