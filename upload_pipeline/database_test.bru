@@ -1,0 +1,41 @@
+meta {
+  name: Database Tests
+  type: http
+  seq: 1
+}
+
+# Test Database Connection
+get {
+  url: http://localhost:8000/test-db
+  meta {
+    name: Test DB Connection
+    type: http
+  }
+}
+
+# Get Server Info
+get {
+  url: http://localhost:8000/server-info
+  meta {
+    name: Get Server Info
+    type: http
+  }
+}
+
+# Home Page
+get {
+  url: http://localhost:8000/
+  meta {
+    name: Get Home Page
+    type: http
+  }
+}
+
+# Get Database Schema
+get {
+  url: http://localhost:8000/db-schema
+  meta {
+    name: Get Database Schema
+    type: http
+  }
+} 
